@@ -38,6 +38,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+# Windows:
+* Directions for use:
+  * Install python
+  * Install pip
+  * Open CMD
+
+**1. Install pip requirements**
+```bash
+pip install -r requirements.txt
+```
+    
 
 
 
