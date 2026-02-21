@@ -15,7 +15,7 @@ Discord Drive is a storage solution using a exploit in discords bot system.
   * Use the bianary to convert it back into your original file
   * Sends your file back onto your computer
 
-# How To use the tool?
+# How to setup the requirments for the tool
 
 # Linux:
 * Directions for use:
