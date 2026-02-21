@@ -1,6 +1,8 @@
 # Discord-Drive
 A storage solution for discord. 
 
+**THIS IS A OVERSIMPLIFYED VERSION OF THE [VIDEO]() I MADE**
+
 # How does Discord-Drive work?
 Discord Drive is a storage solution using a exploit in discords bot system.
 * How it works:
@@ -67,6 +69,18 @@ Navigate to the [Discord Developer Portal](https://discord.com/developers/applic
   * Scroll down more to Bot Permissions and select Administrator
   * Scroll down to Generated URL and copy the link
   * Paste that link into your browser and invite the bot to the server
+
+# Setting up the file
+
+* Direct to the main.py file
+  * Paste the token from before in between the quotations here BOT_TOKEN = ""
+  * Paste your Channel ID into the quotations here CHANNEL_ID = ""
+
+# Running the file
+
+* Open your OS's terminal
+  * Change Directory to where your project folder is using cd
+  * Run the python file using "./main.py"
 
 
 
