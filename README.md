@@ -12,5 +12,6 @@ Discord Drive is a storage solution using a exploit in discords bot system.
   * Takes 5.15 MB base64 from discord
   * Adds them together and encrypts them back to bianary
   * Use the bianary to convert it back into your original file
+  * Sends your file back onto your computer
 
   
