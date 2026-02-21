@@ -69,7 +69,11 @@ Navigate to the [Discord Developer Portal](https://discord.com/developers/applic
   * Paste that link into your browser and invite the bot to the server
 
 
-
+* Inviting the bot to your server
+  * Scroll down to "OAuth2 URL Generator" and select bot
+  * Scroll down more to Bot Permissions and select Administrator
+  * Scroll down to Generated URL and copy the link
+  * Paste that link into your browser and invite the bot to the server
     
 
 
