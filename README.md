@@ -16,5 +16,14 @@ Discord Drive is a storage solution using a exploit in discords bot system.
   * Sends your file back onto your computer
 
 # How To use the tool?
-## This is the subtext tagline
+
+# Linux:
+* Directions for use:
+  * Open Visual studio code
+  * Navigate to the view tab
+  * Click terminal
+**Paste this in the terminal**
+```bash
+git clone [https://github.com/your-username/your-repository.git](https://github.com/your-username/your-repository.git)
+
   
