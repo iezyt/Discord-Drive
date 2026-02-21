@@ -28,6 +28,16 @@ Discord Drive is a storage solution using a exploit in discords bot system.
 python -m venv venv
 ```
 
+**2. Activate the environment you just created**
+```bash
+source venv/bin/activate
+```
+
+**3. Install requirments from the txt**
+```bash
+pip install -r requirements.txt
+```
+
 
 
 
