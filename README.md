@@ -80,7 +80,7 @@ Navigate to the [Discord Developer Portal](https://discord.com/developers/applic
 
 * Open your OS's terminal
   * Change Directory to where your project folder is using cd
-  * Run the python file using "./main.py"
+  * Run the python file using "python main.py"
 
 
 
