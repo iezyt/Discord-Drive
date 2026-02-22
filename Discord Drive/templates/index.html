@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Drive</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="gauge-container">
+<div class="gauge-bg"></div>
+<div id="gaugeFill" class="gauge-fill"></div>
+<div class="gauge-text">
+<span class="main" id="storageVal">0.00 MB</span>
+<span class="sub">of Discord's Capacity</span>
+</div>
+</div>
+<div class="card">
+<h2>Discord Drive</h2>
+<div class="upload-section">
+<input type="file" id="fileInput">
+<button class="upload-btn" id="uploadBtn" onclick="upload()">UPLOAD</button>
+</div>
+<div class="file-list" id="fileList">
+            Connecting...
+</div>
+</div>
+<div class="footer">made with love by iez 💕 </div>
+
+<div class="progress-overlay" id="uploadProgress">
+    <div class="progress-label" id="uploadProgressLabel">Uploading...</div>
+    <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="uploadProgressFill"></div>
+    </div>
+    <div class="progress-meta">
+        <span id="uploadProgressPct">0%</span>
+        <span id="uploadProgressEta">Estimating...</span>
+    </div>
+</div>
+
+<div class="progress-overlay" id="restoreProgress">
+    <div class="progress-label" id="restoreProgressLabel">Restoring...</div>
+    <div class="progress-bar-track">
+        <div class="progress-bar-fill restore" id="restoreProgressFill"></div>
+    </div>
+    <div class="progress-meta">
+        <span id="restoreProgressPct">0%</span>
+        <span id="restoreProgressEta">Estimating...</span>
+    </div>
+</div>
+
+<div class="progress-overlay" id="deleteProgress">
+    <div class="progress-label" id="deleteProgressLabel">Deleting...</div>
+    <div class="progress-bar-track">
+        <div class="progress-bar-fill delete" id="deleteProgressFill"></div>
+    </div>
+    <div class="progress-meta">
+        <span id="deleteProgressPct">0%</span>
+        <span id="deleteProgressEta">Estimating...</span>
+    </div>
+</div>
+
+<script>
+
+let activeUploadFilename = null;
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatEta(seconds) {
+    if (seconds === null || seconds === undefined || !isFinite(seconds) || seconds < 0)
+        return 'Estimating...';
+    if (seconds < 5)  return 'Almost done...';
+    if (seconds < 60) return `${Math.ceil(seconds)}s remaining`;
+    const m = Math.floor(seconds / 60), s = Math.ceil(seconds % 60);
+    return `${m}m ${s}s remaining`;
+}
+
+function pollProgress(jobId, overlayId, fillId, pctId, etaId, labelId, labelText, onDone) {
+    const overlay = document.getElementById(overlayId);
+    const fill    = document.getElementById(fillId);
+    const pct     = document.getElementById(pctId);
+    const eta     = document.getElementById(etaId);
+    const label   = document.getElementById(labelId);
+
+    label.textContent = labelText;
+    fill.style.width  = '0%';
+    pct.textContent   = '0%';
+    eta.textContent   = 'Estimating...';
+    overlay.classList.add('active');
+
+    const others = ['uploadProgress','restoreProgress','deleteProgress'].filter(id => id !== overlayId);
+    let stackOffset = 32;
+    others.forEach(id => {
+        if (document.getElementById(id).classList.contains('active')) stackOffset += 98;
+    });
+    overlay.style.bottom = `${stackOffset}px`;
+
+    const interval = setInterval(async () => {
+        try {
+            const res  = await fetch(`/progress/${jobId}`);
+            if (!res.ok) { clearInterval(interval); return; }
+            const data = await res.json();
+
+            fill.style.width = `${data.pct}%`;
+            pct.textContent  = `${data.pct}% (${data.done}/${data.total} chunks)`;
+
+            if (data.cancelled) {
+                eta.textContent = 'Cancelled — cleaning up...';
+            } else {
+                eta.textContent = data.finished ? 'Done!' : formatEta(data.eta_sec);
+            }
+
+            if (data.finished) {
+                clearInterval(interval);
+                if (!data.cancelled) {
+                    fill.style.width = '100%';
+                    pct.textContent  = `100% (${data.total}/${data.total} chunks)`;
+                    eta.textContent  = 'Done!';
+                }
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    overlay.style.bottom = '32px';
+                    if (onDone) onDone();
+                }, 1800);
+            }
+        } catch (err) {
+            console.error('Progress poll error:', err);
+            clearInterval(interval);
+        }
+    }, 800);
+}
+
+async function refresh() {
+    try {
+        const res = await fetch('/list-files');
+        if (!res.ok) throw new Error('Network response was not ok');
+        const data = await res.json();
+        const usedMB = (data.used_bytes / (1024 * 1024)).toFixed(2);
+        const usedGB = (data.used_bytes / (1024 ** 3)).toFixed(2);
+        document.getElementById('storageVal').innerText =
+            Number(usedMB) > 1024 ? `${usedGB} GB` : `${usedMB} MB`;
+        const percent = Math.min(data.used_bytes / (8 * 1024 ** 3), 1) * 100;
+        document.getElementById('gaugeFill').style.transform =
+            `rotate(${-45 + (percent * 1.8)}deg)`;
+        const list    = document.getElementById('fileList');
+        const entries = Object.entries(data.files || {});
+        if (entries.length === 0) {
+            list.innerHTML = '<p style="color:var(--text-muted); text-align:center; margin-top:20px;">No files found.</p>';
+            return;
+        }
+        list.innerHTML = entries.map(([name, info]) => `
+            <div class="file-item">
+                <div class="file-info">
+                    <span class="file-name">${name}</span>
+                    <span class="file-size">${formatBytes(info.size)} / Infinite GB</span>
+                </div>
+                <div class="action-btns">
+                    <button class="restore-btn" onclick="reconstruct('${name.replace(/'/g, "\\'")}')">RESTORE</button>
+                    <button class="delete-btn" onclick="deleteFile('${name.replace(/'/g, "\\'")}')">DELETE</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error(err);
+        document.getElementById('fileList').innerHTML =
+            '<p style="color:#d9534f; text-align:center;">Error loading files</p>';
+    }
+}
+
+async function upload() {
+    const btn   = document.getElementById('uploadBtn');
+    const input = document.getElementById('fileInput');
+    const file  = input.files[0];
+    if (!file) { alert("Please select a file first."); return; }
+
+    btn.innerText = "UPLOADING...";
+    btn.disabled  = true;
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Upload failed');
+        const data = await res.json();
+
+        activeUploadFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_'); 
+
+        pollProgress(
+            data.job_id,
+            'uploadProgress', 'uploadProgressFill', 'uploadProgressPct', 'uploadProgressEta', 'uploadProgressLabel',
+            `Uploading to Discord: ${file.name}`,
+            async () => {
+                activeUploadFilename = null;
+                input.value          = '';
+                btn.innerText        = "UPLOAD";
+                btn.disabled         = false;
+                await refresh();
+            }
+        );
+    } catch (err) {
+        console.error(err);
+        alert("Upload failed. Check console.");
+        btn.innerText = "UPLOAD";
+        btn.disabled  = false;
+    }
+}
+
+async function reconstruct(name) {
+    try {
+        const res = await fetch(`/reconstruct/${encodeURIComponent(name)}`);
+        if (!res.ok) throw new Error('Reconstruct failed');
+        const data = await res.json();
+
+        pollProgress(
+            data.job_id,
+            'restoreProgress', 'restoreProgressFill', 'restoreProgressPct', 'restoreProgressEta', 'restoreProgressLabel',
+            `Restoring from Discord: ${name}`,
+            null
+        );
+    } catch (err) {
+        console.error("Reconstruct request failed:", err);
+    }
+}
+
+async function deleteFile(name) {
+    if (!confirm(`Delete ${name} from Discord Drive?`)) return;
+
+    const isUploading = activeUploadFilename && activeUploadFilename === name;
+    if (isUploading) {
+        document.getElementById('uploadProgress').classList.remove('active');
+        activeUploadFilename = null;
+        document.getElementById('uploadBtn').innerText = "UPLOAD";
+        document.getElementById('uploadBtn').disabled  = false;
+    }
+
+    try {
+        const res = await fetch(`/delete/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
+        const data = await res.json();
+
+        pollProgress(
+            data.job_id,
+            'deleteProgress', 'deleteProgressFill', 'deleteProgressPct', 'deleteProgressEta', 'deleteProgressLabel',
+            isUploading ? `Cancelling & deleting: ${name}` : `Deleting from Discord: ${name}`,
+            async () => { await refresh(); }
+        );
+    } catch (err) {
+        console.error(err);
+        alert("Could not delete file.");
+    }
+}
+
+async function resumeActiveJobs() {
+    try {
+        const res  = await fetch('/active-jobs');
+        if (!res.ok) return;
+        const jobs = await res.json();
+        jobs.forEach(job => {
+            if (job.type === 'delete') {
+                pollProgress(
+                    job.job_id,
+                    'deleteProgress', 'deleteProgressFill', 'deleteProgressPct', 'deleteProgressEta', 'deleteProgressLabel',
+                    `Deleting from Discord: ${job.label}`,
+                    async () => { await refresh(); }
+                );
+            } else if (job.type === 'restore') {
+                pollProgress(
+                    job.job_id,
+                    'restoreProgress', 'restoreProgressFill', 'restoreProgressPct', 'restoreProgressEta', 'restoreProgressLabel',
+                    `Restoring from Discord: ${job.label}`,
+                    null
+                );
+            }
+        });
+    } catch (err) {
+        console.error('Could not resume active jobs:', err);
+    }
+}
+
+setInterval(refresh, 8000);
+refresh();
+resumeActiveJobs();
+</script>
+</body>
+</html>
