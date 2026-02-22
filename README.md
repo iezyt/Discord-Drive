@@ -32,7 +32,7 @@ python -m venv venv
 
 **2. Activate the environment you just created**
 ```bash
-source venv/bin/activate
+source venv/bin/activate.fish
 ```
 
 **3. Install requirments from the txt**
