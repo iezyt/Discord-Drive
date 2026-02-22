@@ -74,7 +74,7 @@ Navigate to the [Discord Developer Portal](https://discord.com/developers/applic
 
 * Direct to the main.py file
   * Paste the token from before in between the quotations here BOT_TOKEN = ""
-  * Paste your Channel ID into the quotations here CHANNEL_ID = ""
+  * Paste your Channel ID after the equals sign followed with a space here CHANNEL_ID = 
 
 # Running the file
 
