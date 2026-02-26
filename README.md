@@ -1,8 +1,7 @@
 # Discord-Drive
 A storage solution for discord. 
 
-**This code is provided as-is with no liability for its use on my end, all rights are reserved under copyright law and modifications are strictly prohibited. As stated [here]([https://github.com/iezyt/Discord-Drive/blob/main/LICENSE](https://raw.githubusercontent.com/iezyt/Discord-Drive/refs/heads/main/LICENSE))**
-
+**This code is provided as-is with no liability for its use on my end, all rights are reserved under copyright law and modifications are strictly prohibited. As stated [here](https://raw.githubusercontent.com/iezyt/Discord-Drive/refs/heads/main/LICENSE)
 # How does Discord-Drive work?
 Discord Drive is a storage solution using a exploit in discords bot system.
 * How it works:
