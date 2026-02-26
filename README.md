@@ -81,6 +81,7 @@ Navigate to the [Discord Developer Portal](https://discord.com/developers/applic
   * Change Directory to where your project folder is using cd
   * Run the python file using "python main.py"
 
+if you like this repo please leave a star 💕
 
 
     
